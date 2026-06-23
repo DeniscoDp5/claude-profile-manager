@@ -2,9 +2,9 @@
 
 > `nvm` per le versioni di Node, `--profile` per AWS… **`cpm` per i tuoi account Claude.**
 
-`cpm` è una piccola CLI globale che ti permette di **alternare istantaneamente più profili/account della CLI ufficiale di Claude** (es. *personale* e *lavoro*), mantenendo ogni sessione di login **completamente isolata** — inclusa l'identità dell'account (email) mostrata in console.
+`cpm` è un profile switcher per la CLI ufficiale di Claude. Pensato per programmatori e agenti AI, permette di **alternare istantaneamente più profili/account** (es. *personale* e *lavoro*), mantenendo ogni sessione di login **completamente isolata** — inclusa l'identità dell'account (email) mostrata in console.
 
-Funziona impostando la variabile d'ambiente **`CLAUDE_CONFIG_DIR`**: quando è valorizzata, la CLI di Claude scrive *tutta* la sua configurazione lì dentro — non solo il contenuto di `~/.claude` (credenziali, sessioni, progetti) ma anche il file `~/.claude.json` che contiene l'account OAuth e l'email. Ogni profilo diventa così una cartella autosufficiente in `~/.claude_profiles/`, e i profili non si "contaminano" più a vicenda.
+Funziona impostando nativamente la variabile d'ambiente **`CLAUDE_CONFIG_DIR`**: quando è valorizzata, la CLI di Claude scrive *tutta* la sua configurazione in quel percorso, invece che nelle directory standard condivise. Ogni profilo diventa così una cartella autosufficiente e autonoma.
 
 Zero dipendenze esterne — solo i moduli nativi di Node.
 
@@ -41,77 +41,63 @@ npm link
 
 ---
 
-## ⚙️ Setup della shell (una tantum)
+## ⚙️ Setup della shell (Perché è necessario?)
 
-Poiché un processo non può modificare l'ambiente della shell che lo ha lanciato, `cpm use` ha bisogno di una piccola funzione di shell per esportare davvero `CLAUDE_CONFIG_DIR` (esattamente come fa `nvm`).
+**Importante:** Un processo figlio (come uno script Node) non può modificare le variabili d'ambiente del terminale "genitore" che lo ha lanciato. Poiché `cpm` funziona modificando la variabile `CLAUDE_CONFIG_DIR`, ha bisogno di una "shell function" (un wrapper caricato all'avvio) per intercettare il comando e applicare la modifica all'ambiente corrente.
+Se non completi il setup, vedrai un errore giallo `⚠ Shell integration non attiva` e i comandi di switch non avranno alcun effetto sul tuo terminale.
 
 ### Linux / macOS / WSL (bash o zsh)
 
 Il modo più rapido:
-
 ```bash
 cpm setup
 ```
-
-Oppure manualmente:
-
-```bash
-cpm shell-init >> ~/.bashrc      # oppure ~/.zshrc
-```
-
-Poi riapri il terminale (o esegui `source ~/.bashrc`).
-
-> Non vuoi toccare il file di configurazione? Puoi sempre usare la forma esplicita:
-> ```bash
-> eval "$(cpm use lavoro)"
-> ```
+*(Questo aggiungerà la riga di inizializzazione al tuo file `~/.bashrc` o `~/.zshrc`).* Riapri poi il terminale.
 
 ### Windows (PowerShell)
 
 ```powershell
 cpm setup
 ```
-
-Questo rileva il profilo PowerShell (`$PROFILE`) e vi aggiunge l'integrazione automaticamente. Poi riapri il terminale o esegui:
-
+*(Questo aggiornerà il tuo `$PROFILE` di PowerShell).* Riapri poi il terminale o esegui:
 ```powershell
 . "$PROFILE"
 ```
 
-> Forma esplicita senza integrazione:
-> ```powershell
-> Invoke-Expression (cpm use lavoro)
-> ```
+### 🤖 Utilizzo per Agenti AI e Automazioni (Senza Setup)
 
-### Cosa fa l'integrazione
-
-- Abilita il comando `cpm use <nome>` a cambiare profilo nella shell corrente.
-- Fa sì che **anche i nuovi terminali** ripartano automaticamente dall'ultimo profilo attivato.
+Se sei un **Agente AI** o stai automatizzando uno script e non puoi appoggiarti al file `.bashrc` o `$PROFILE`, puoi bypassare l'integrazione shell valutando direttamente l'output del comando.
+`cpm use <nome>` stampa infatti su `stdout` il comando di esportazione corretto:
+- **Bash/Zsh:** `eval "$(cpm use nome_profilo)"`
+- **PowerShell:** `Invoke-Expression (cpm use nome_profilo)`
 
 ---
 
-## 🚀 Guida rapida
+## 🚀 Workflow Principale (Guida Rapida)
 
-### 1. Crea il tuo primo profilo
+### 0. Salvare la configurazione esistente
+Se usavi già la CLI di Claude prima di installare `cpm`, la tua configurazione (e il tuo login attuale) si trovano nei percorsi standard del sistema. Non sovrascriverla! Importala come tuo primo profilo (es. chiamalo `personale`):
+
+```bash
+cpm save personale
+```
+Questo comando copierà tutti i tuoi token correnti nel nuovo profilo e lo imposterà come attivo. Non dovrai fare un nuovo login!
+
+### 1. Aggiungere un nuovo profilo
+Vuoi aggiungere un nuovo account (es. per il lavoro)? Usa il comando `login`:
 
 ```bash
 cpm login lavoro
 ```
+`cpm` crea la cartella del profilo isolato e avvia direttamente l'autenticazione ufficiale della CLI (`claude auth login`). Completa l'autenticazione dal browser: al termine, il profilo `lavoro` è pronto e attivo.
 
-`cpm` crea la cartella del profilo e avvia il login isolato della CLI ufficiale (`claude auth login`) con `CLAUDE_CONFIG_DIR` già puntato al profilo. Completa l'autenticazione: al termine il profilo `lavoro` è autenticato e attivo.
-
-Ripeti per ogni account:
-
-```bash
-cpm login personale
-```
-
-### 2. Elenca i profili e vedi quale è attivo
+### 2. Verificare lo stato
+Vuoi sapere con quale account stai parlando o vedere tutti i tuoi profili?
 
 ```bash
 cpm list
 ```
-
+Vedrai un output chiaro con le email associate a ogni profilo e un asterisco `*` su quello correntemente attivo:
 ```text
 Profili Claude (/home/tu/.claude_profiles)
 
@@ -119,33 +105,28 @@ Profili Claude (/home/tu/.claude_profiles)
     personale   <io@gmail.com>
 
 Attivo: lavoro (via CLAUDE_CONFIG_DIR)
-Default per i nuovi terminali: lavoro
 ```
 
-Il profilo attivo è contrassegnato da `*` e accanto a ogni profilo vedi l'email dell'account associato.
-
-### 3. Cambia profilo
+### 3. Switch istantaneo
+Per passare da un account all'altro basta un comando:
 
 ```bash
 cpm use personale
 ```
-
-```text
-OK Profilo attivo: personale
-```
-
-Da questo momento la CLI di Claude userà l'account *personale*. Per tornare al lavoro: `cpm use lavoro`. Istantaneo, nessun nuovo login.
+Fatto. Da questo momento la CLI di Claude userà il tuo account *personale*. Nessun login richiesto, nessun file sovrascritto.
 
 ---
 
-## 🧰 Comandi
+## 🧰 Tabella dei Comandi
 
 | Comando             | Descrizione                                                                 |
 | ------------------- | --------------------------------------------------------------------------- |
-| `cpm login <nome>`  | Autentica un nuovo profilo isolato e lo attiva.                             |
+| `cpm save <nome>`   | Importa la configurazione Claude esistente di default in un nuovo profilo.  |
+| `cpm login <nome>`  | Autentica un nuovo profilo isolato tramite browser e lo attiva.             |
 | `cpm use <nome>`    | Attiva un profilo esistente (imposta `CLAUDE_CONFIG_DIR`).                  |
 | `cpm list` (`ls`)   | Elenca i profili con la relativa email e mostra quello attivo.             |
-| `cpm shell-init`    | Stampa la riga da aggiungere a `~/.bashrc` / `~/.zshrc`.                    |
+| `cpm setup`         | Configura l'integrazione automatica per la tua shell corrente.              |
+| `cpm shell-init`    | Stampa il codice per l'integrazione shell (per uso manuale).                |
 | `cpm help`          | Mostra l'aiuto.                                                            |
 
 ---
@@ -166,10 +147,7 @@ La CLI ufficiale di Claude, se trova la variabile `CLAUDE_CONFIG_DIR`, vi colloc
 cpm use <nome>   ─►   export CLAUDE_CONFIG_DIR=~/.claude_profiles/<nome>
 ```
 
-- **`cpm use <nome>`** stampa una riga `export CLAUDE_CONFIG_DIR=...` che la funzione di shell valuta, cambiando profilo nella sessione corrente. Salva inoltre il nome in `~/.claude_profiles/.active` come default per i nuovi terminali.
-- **`cpm login <nome>`** crea la cartella del profilo ed esegue `claude auth login` con `CLAUDE_CONFIG_DIR` impostata, così le credenziali finiscono direttamente nel profilo.
-
-Lo switch è robusto anche rispetto alle scritture atomiche con cui la CLI rigenera `.claude.json` ad ogni avvio.
+Lo switch è estremamente robusto perché supporta nativamente le scritture atomiche con cui la CLI rigenera i suoi file ad ogni avvio.
 
 ---
 
@@ -188,7 +166,6 @@ Lo switch è robusto anche rispetto alle scritture atomiche con cui la CLI rigen
 
 ## ⚠️ Note e limiti
 
-- L'integrazione della shell è necessaria perché `cpm use` possa modificare l'ambiente del terminale corrente (vedi *Setup della shell*).
 - Apri al massimo una sessione interattiva per profilo alla volta per evitare scritture concorrenti sullo stesso `.claude.json`.
 - `cpm login` richiede che la CLI ufficiale `claude` sia installata e nel `PATH`.
 - Su Windows, assicurati che l'execution policy di PowerShell consenta l'esecuzione di script: `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser`.
