@@ -1,7 +1,7 @@
 {
-  "name": "claude-profile-manager",
-  "version": "1.0.0",
-  "description": "Switch instantly between multiple Claude CLI accounts/profiles (personal, work, ...) using symlinks - like nvm, but for your ~/.claude configuration.",
+  "name": "@deniscodp/claude-profile-manager",
+  "version": "1.0.1",
+  "description": "Switch instantly between multiple Claude CLI accounts/profiles (personal, work, ...) by isolating CLAUDE_CONFIG_DIR per profile - like nvm, but for your Claude configuration.",
   "type": "module",
   "bin": {
     "cpm": "index.js"
@@ -9,6 +9,8 @@
   "main": "index.js",
   "files": [
     "index.js",
+    "cpm.sh",
+    "cpm.ps1",
     "README.md"
   ],
   "engines": {
@@ -29,14 +31,14 @@
     "cli",
     "dotfiles"
   ],
-  "author": "Denis Petrisor <denis.petrisor@tellus.it>",
+  "author": "Denis Constantin Petrisor <denisco.dp5@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-username/claude-profile-manager.git"
+    "url": "git+https://github.com/DeniscoDp5/claude-profile-manager.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/claude-profile-manager/issues"
+    "url": "https://github.com/DeniscoDp5/claude-profile-manager/issues"
   },
-  "homepage": "https://github.com/your-username/claude-profile-manager#readme"
+  "homepage": "https://github.com/DeniscoDp5/claude-profile-manager#readme"
 }
