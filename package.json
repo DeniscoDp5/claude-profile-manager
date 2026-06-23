@@ -1,0 +1,42 @@
+{
+  "name": "claude-profile-manager",
+  "version": "1.0.0",
+  "description": "Switch instantly between multiple Claude CLI accounts/profiles (personal, work, ...) using symlinks - like nvm, but for your ~/.claude configuration.",
+  "type": "module",
+  "bin": {
+    "cpm": "index.js"
+  },
+  "main": "index.js",
+  "files": [
+    "index.js",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=16.7.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [
+    "claude",
+    "claude-cli",
+    "anthropic",
+    "profile",
+    "profile-manager",
+    "account-switcher",
+    "symlink",
+    "nvm",
+    "cli",
+    "dotfiles"
+  ],
+  "author": "Denis Petrisor <denis.petrisor@tellus.it>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/claude-profile-manager.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/claude-profile-manager/issues"
+  },
+  "homepage": "https://github.com/your-username/claude-profile-manager#readme"
+}
